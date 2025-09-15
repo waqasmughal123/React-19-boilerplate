@@ -1,51 +1,112 @@
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { RootState, AppDispatch } from '@store/index'
+import { AppDispatch } from '@store/index'
 import { setUser } from '@store/slices/authSlice'
-import { MuiButtonComponent } from '@components/atoms'
+import {
+  TextField,
+  Checkbox,
+  Button,
+  Typography,
+  FormControlLabel,
+  IconButton,
+  InputAdornment
+} from '@mui/material'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { useState } from 'react'
+import './LoginPage.css'
 
 const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
 
-  // If already authenticated, redirect to dashboard
-  if (isAuthenticated) {
-    navigate('/dashboard', { replace: true })
-    return null
-  }
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   const handleLogin = () => {
-    // Set mock user data to simulate successful authentication
+    // Mock authentication
     dispatch(setUser({
       id: 1,
-      email: 'user@example.com',
+      email: email || 'user@example.com',
       date_joined: new Date().toISOString(),
       is_active: true
     }))
-    
-    // Store mock token for persistence
+
     localStorage.setItem('token', 'mock-jwt-token-' + Date.now())
-    
+
+    // Navigate to dashboard after button click
     navigate('/dashboard', { replace: true })
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh',
-      padding: '20px'
-    }}>
-      <MuiButtonComponent
-        variant="contained"
-        color="primary"
-        size="large"
-        onClick={handleLogin}
-      >
-        Login
-      </MuiButtonComponent>
+    <div className="login-page">
+      <div className="login-container">
+        
+        {/* Left Side - Form */}
+        <div className="login-left">
+          <div className="login-form-wrapper">
+            <div className="login-header">
+              <Typography variant="h5" fontWeight={600}>
+                Welcome back
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Enter your credentials to access your account
+              </Typography>
+            </div>
+
+            <form className="login-form" onSubmit={(e) => e.preventDefault()}>
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              <TextField
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+
+              <FormControlLabel
+                control={<Checkbox color="warning" />}
+                label="Remember me"
+              />
+
+              <Button
+                className="login-button"
+                fullWidth
+                onClick={handleLogin}
+              >
+                Sign in
+              </Button>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Side - Brand */}
+        <div className="login-right">
+          <div className="brand-section">
+            <div className="brand-logo">
+              <div className="logo-circle">CA</div>
+              <h2>CUSTOM ALUMINIUM</h2>
+              <p>METALWORK SPECIALISTS</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
