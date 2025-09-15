@@ -1,0 +1,36 @@
+/* HelpDrawer specific styles */
+.help-drawer {
+  /* Custom styles for help drawer if needed */
+}
+
+.help-drawer__header {
+  /* Header specific styles */
+}
+
+.help-drawer__search {
+  /* Search field specific styles */
+}
+
+.help-drawer__content {
+  /* Content area specific styles */
+}
+
+.help-drawer__footer {
+  /* Footer specific styles */
+}
+
+/* Help item hover effects */
+.help-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* External link icon */
+.external-link-icon {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.help-item:hover .external-link-icon {
+  opacity: 1;
+}
+
