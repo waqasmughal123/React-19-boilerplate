@@ -11,6 +11,14 @@
   border-right: 1px solid #00000033;
 }
 
+/* 🔥 Small screen ke liye padding add */
+@media (max-width: 900px) {
+  .sidebar {
+    padding-top: 64px; /* ✅ AppHeader ki height ke barabar */
+    height: calc(100vh - 64px); /* ✅ niche fit hoga */
+  }
+}
+
 .sidebar-header {
   padding: 16px;
   border-bottom: 1px solid #00000033;
