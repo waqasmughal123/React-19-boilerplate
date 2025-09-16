@@ -1,10 +1,13 @@
+
 import React from 'react'
 import { Avatar, List, ListItemIcon, ListItemText, Typography, Button } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import PeopleIcon from '@mui/icons-material/People'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { useSelector } from 'react-redux'
-import { RootState } from '@store/index'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState, AppDispatch } from '@store/index'
+import { logout } from '@store/slices/authSlice'
+import { useNavigate } from 'react-router-dom'
 import './Sidebar.css'
 
 export interface SidebarProps {
@@ -14,6 +17,8 @@ export interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'Dashboard' }) => {
   const { user } = useSelector((state: RootState) => state.auth)
+  const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
 
   if (collapsed) return null
 
@@ -23,6 +28,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'D
   ]
 
   const getUserInitials = () => user?.email?.charAt(0).toUpperCase() || 'U'
+
+  const handleLogout = () => {
+    dispatch(logout()) // ✅ Redux + localStorage clear
+    navigate('/signup') // ✅ Redirect to signup page
+  }
 
   return (
     <div className="sidebar">
@@ -46,25 +56,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'D
       {/* Navigation */}
       <List className="nav-list">
         {navItems.map((item) => (
-         <div
-  key={item.text}
-  className="nav-item"
-  style={{
-    backgroundColor: active === item.text ? '#ffd600' : 'transparent',
-    color: active === item.text ? '#111827' : '#ffffffaa',
-    borderLeft: active === item.text ? '3px solid #ffd600' : '3px solid transparent',
-  }}
->
-  <ListItemIcon
-    sx={{ color: active === item.text ? '#111827' : '#ffffffaa', minWidth: 36 }}
-  >
-    {item.icon}
-  </ListItemIcon>
-  <ListItemText
-    primary={item.text}
-    sx={{ color: active === item.text ? '#111827' : '#ffffffaa' }}
-  />
-</div>
+          <div
+            key={item.text}
+            className="nav-item"
+            style={{
+              backgroundColor: active === item.text ? '#ffd600' : 'transparent',
+              color: active === item.text ? '#111827' : '#ffffffaa',
+              borderLeft: active === item.text ? '3px solid #ffd600' : '3px solid transparent',
+            }}
+          >
+            <ListItemIcon
+              sx={{ color: active === item.text ? '#111827' : '#ffffffaa', minWidth: 36 }}
+            >
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText
+              primary={item.text}
+              sx={{ color: active === item.text ? '#111827' : '#ffffffaa' }}
+            />
+          </div>
         ))}
       </List>
 
@@ -72,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'D
       <div className="logout-container">
         <Button
           startIcon={<LogoutIcon />}
+          onClick={handleLogout}
           sx={{
             color: '#ffd600',
             border: '1px solid #ffd600',

@@ -1,7 +1,8 @@
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { AppDispatch } from '@store/index'
-import { setUser } from '@store/slices/authSlice'
+
+import { useDispatch, useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
+import { AppDispatch, RootState } from "@store/index"
+import { loginUser, clearError } from "@store/slices/authSlice"
 import {
   TextField,
   Checkbox,
@@ -9,39 +10,54 @@ import {
   Typography,
   FormControlLabel,
   IconButton,
-  InputAdornment
-} from '@mui/material'
-import { Visibility, VisibilityOff } from '@mui/icons-material'
-import { useState } from 'react'
-import './LoginPage.css'
+  InputAdornment,
+  CircularProgress,
+  Alert,
+} from "@mui/material"
+import { Visibility, VisibilityOff } from "@mui/icons-material"
+import { useState, useEffect } from "react"
+import "./LoginPage.css"
 
 const LoginPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
 
+  const { isLoading, error, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  )
+
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [username, setUsername] = useState("") // ✅ username instead of email
+  const [password, setPassword] = useState("")
+  const [validationError, setValidationError] = useState<string | null>(null)
 
-  const handleLogin = () => {
-    // Mock authentication
-    dispatch(setUser({
-      id: 1,
-      email: email || 'user@example.com',
-      date_joined: new Date().toISOString(),
-      is_active: true
-    }))
+  // ✅ Redirect sirf tab hoga jab login success hoga
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
-    localStorage.setItem('token', 'mock-jwt-token-' + Date.now())
+  const handleLogin = async () => {
+    // Validation
+    if (!username || !/\S+@\S+\.\S+/.test(username)) {
+      setValidationError("Please enter a valid email address")
+      return
+    }
+    if (password.length < 5) {
+      setValidationError("Password must be at least 5 characters")
+      return
+    }
 
-    // Navigate to dashboard after button click
-    navigate('/dashboard', { replace: true })
+    setValidationError(null)
+
+    // Dispatch login → loader start hoga
+    await dispatch(loginUser({ username, password }))
   }
 
   return (
     <div className="login-page">
       <div className="login-container">
-        
         {/* Left Side - Form */}
         <div className="login-left">
           <div className="login-form-wrapper">
@@ -55,18 +71,32 @@ const LoginPage = () => {
             </div>
 
             <form className="login-form" onSubmit={(e) => e.preventDefault()}>
+              {/* Validation Error */}
+              {validationError && <Alert severity="error">{validationError}</Alert>}
+
+              {/* API Error */}
+              {error && (
+                <Alert severity="error" onClose={() => dispatch(clearError())}>
+                  {error}
+                </Alert>
+              )}
+
+              {/* Username (Email style) */}
               <TextField
                 label="Email"
                 type="email"
                 fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                margin="normal"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
 
+              {/* Password */}
               <TextField
                 label="Password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 fullWidth
+                margin="normal"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 InputProps={{
@@ -76,7 +106,7 @@ const LoginPage = () => {
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  )
+                  ),
                 }}
               />
 
@@ -85,12 +115,20 @@ const LoginPage = () => {
                 label="Remember me"
               />
 
+              {/* Button with Loader */}
               <Button
                 className="login-button"
                 fullWidth
+                variant="contained"
+                color="primary"
                 onClick={handleLogin}
+                disabled={isLoading}
               >
-                Sign in
+                {isLoading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Sign in"
+                )}
               </Button>
             </form>
           </div>
