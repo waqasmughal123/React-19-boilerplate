@@ -11,11 +11,10 @@
   border-right: 1px solid #00000033;
 }
 
-/* 🔥 Small screen ke liye padding add */
 @media (max-width: 900px) {
   .sidebar {
-    padding-top: 64px; /* ✅ AppHeader ki height ke barabar */
-    height: calc(100vh - 64px); /* ✅ niche fit hoga */
+    padding-top: 64px;
+    height: calc(100vh - 64px);
   }
 }
 
@@ -52,8 +51,8 @@
   color: #ffffffaa;
   border-left: 3px solid transparent;
   cursor: pointer;
-  border-radius: 8px; /* added rounded corners */
-  margin: 4px 8px; /* optional spacing so rounding is visible */
+  border-radius: 8px;
+  margin: 4px 8px;
 }
 
 .nav-item:hover {
@@ -62,9 +61,9 @@
 }
 
 .nav-item.active {
-  background-color: #ffd600; /* full gold background */
-  color: #111827; /* dark text on gold */
-  border-left: 3px solid #ffd600; /* optional accent */
+  background-color: #ffd600; /* ✅ Gold bg for active page */
+  color: #111827;
+  border-left: 3px solid #ffd600;
 }
 
 .logout-container {

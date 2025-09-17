@@ -1,6 +1,6 @@
 export { FormField } from './FormField'
 export { DashboardCard } from './DashboardCard'
 export { MuiDashboardCard } from './MuiDashboardCard'
-export { CrudTable } from './CrudTable'
-export { CrudForm } from './CrudForm'
+// export { CrudTable } from './CrudTable'
+// export { CrudForm } from './CrudForm'
 export { MessageNotification, useMessage } from './MessageNotification'

@@ -9,12 +9,14 @@
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
+  background-color: white !important;
 }
 
 .top-card-title {
   font-size: 28px !important;
   font-weight: bolder !important;
   margin-bottom: 8px;
+  color: #111 !important;
 }
 
 .top-card-subtitle {

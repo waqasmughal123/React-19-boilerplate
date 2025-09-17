@@ -4,6 +4,9 @@ import { RootState } from '@store/index'
 import { LoginPage, RegisterPage } from '@pages/auth'
 import { DashboardPage } from '@pages/dashboard'
 import { ProtectedRoute } from '@components/organisms/ProtectedRoute'
+import WorkersDashboard from './pages/WorkersDasboard/WorkersDashboard'
+
+
 
 function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
@@ -21,6 +24,14 @@ function App() {
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workers"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <WorkersDashboard/>
           </ProtectedRoute>
         }
       />

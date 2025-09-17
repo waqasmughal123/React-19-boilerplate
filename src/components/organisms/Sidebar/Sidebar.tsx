@@ -1,4 +1,6 @@
 
+
+
 import React from 'react'
 import { Avatar, List, ListItemIcon, ListItemText, Typography, Button } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
@@ -7,15 +9,16 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState, AppDispatch } from '@store/index'
 import { logout } from '@store/slices/authSlice'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import './Sidebar.css'
 
 export interface SidebarProps {
   collapsed?: boolean
   active?: string
+  onNavItemClick?: () => void // ✅ callback for small screen toggle
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'Dashboard' }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'Dashboard', onNavItemClick }) => {
   const { user } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
@@ -23,15 +26,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'D
   if (collapsed) return null
 
   const navItems = [
-    { text: 'Dashboard', icon: <DashboardIcon /> },
-    { text: 'Workers', icon: <PeopleIcon /> },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Workers', icon: <PeopleIcon />, path: '/workers' },
   ]
 
   const getUserInitials = () => user?.email?.charAt(0).toUpperCase() || 'U'
 
   const handleLogout = () => {
-    dispatch(logout()) // ✅ Redux + localStorage clear
-    navigate('/signup') // ✅ Redirect to signup page
+    dispatch(logout())
+    navigate('/signup')
   }
 
   return (
@@ -39,11 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'D
       {/* Sidebar Header */}
       <div className="sidebar-header">
         <Avatar
-          sx={{
-            bgcolor: '#ffd600',
-            color: '#111827',
-            fontWeight: 700,
-          }}
+          sx={{ bgcolor: '#ffd600', color: '#111827', fontWeight: 700 }}
         >
           {getUserInitials()}
         </Avatar>
@@ -55,28 +54,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, active = 'D
 
       {/* Navigation */}
       <List className="nav-list">
-        {navItems.map((item) => (
-          <div
-            key={item.text}
-            className="nav-item"
-            style={{
-              backgroundColor: active === item.text ? '#ffd600' : 'transparent',
-              color: active === item.text ? '#111827' : '#ffffffaa',
-              borderLeft: active === item.text ? '3px solid #ffd600' : '3px solid transparent',
-            }}
-          >
-            <ListItemIcon
-              sx={{ color: active === item.text ? '#111827' : '#ffffffaa', minWidth: 36 }}
-            >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText
-              primary={item.text}
-              sx={{ color: active === item.text ? '#111827' : '#ffffffaa' }}
-            />
-          </div>
-        ))}
-      </List>
+  {navItems.map((item) => {
+    const isActive = location.pathname === item.path
+    return (
+      <Link
+        to={item.path}
+        key={item.text}
+        style={{ textDecoration: 'none' }}
+        onClick={onNavItemClick}
+      >
+        <div
+          className="nav-item"
+          style={{
+            backgroundColor: isActive ? '#ffd600' : 'transparent',
+            color: isActive ? '#111827' : '#ffffffaa',
+            borderLeft: isActive ? '3px solid #ffd600' : '3px solid transparent',
+          }}
+        >
+          <ListItemIcon sx={{ color: isActive ? '#111827' : '#ffffffaa', minWidth: 36 }}>
+            {item.icon}
+          </ListItemIcon>
+          <ListItemText
+            primary={item.text}
+            sx={{ color: isActive ? '#111827' : '#ffffffaa' }}
+          />
+        </div>
+      </Link>
+    )
+  })}
+</List>
+
 
       {/* Logout */}
       <div className="logout-container">
