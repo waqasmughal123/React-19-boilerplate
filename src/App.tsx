@@ -12,6 +12,7 @@ function App() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
 
   return (
+        
     <Routes>
       {/* Default route - Login page */}
       <Route path="/" element={<LoginPage />} />
@@ -37,6 +38,7 @@ function App() {
       />
       
     </Routes>
+  
   )
 }
 

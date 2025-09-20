@@ -25,18 +25,19 @@ import {
 } from '@mui/material'
 import { Edit, Delete, Visibility, Close } from '@mui/icons-material'
 
-interface Worker {
-  id: number
+export interface Worker {
+  id?: number
   name: string
   email: string
   phone: string
-  status: 'ACTIVE' | 'INACTIVE'
-  skills: string
+  status: string
+  skills: string[]   // array bhejna hai backend ko
   hireDate: string
   active: boolean
-  address?: string
-  shifts?: string
+  address: string
+  shifts: string
 }
+
 
 interface WorkersTableProps {
   workers: Worker[]
@@ -61,7 +62,7 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
   const indexOfLastRow = page * rowsPerPage
   const indexOfFirstRow = indexOfLastRow - rowsPerPage
   const currentRows = workers.slice(indexOfFirstRow, indexOfLastRow)
-  const pageCount = Math.ceil(workers.length / rowsPerPage)
+  const pageCount = Math.max(1, Math.ceil(workers.length / rowsPerPage))
 
   // Styles
   const cellStyle = {
@@ -80,6 +81,12 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
     ...cellStyle,
     color: '#4b5563',
   }
+  const truncateCellStyle = {
+    ...bodyCellStyle,
+    maxWidth: isMobile ? '80px' : '150px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  }
 
   const handleViewDetails = (worker: Worker) => {
     setSelectedWorker(worker)
@@ -91,16 +98,20 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
     setSelectedWorker(null)
   }
 
+  // Safe truncate function
+  const truncateText = (text?: string | null, maxLength: number) => {
+    if (!text) return ''
+    if (text.length <= maxLength) return text
+    return `${text.substring(0, maxLength)}...`
+  }
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value)
+  }
+
   return (
-    <>
-      <Card
-        sx={{
-          borderRadius: 2,
-          border: '1px solid #e0e0e0',
-          overflow: 'hidden',
-          width: '100%',
-        }}
-      >
+    <Box sx={{ width: '100%', overflow: 'hidden' }}>
+      <Card sx={{ borderRadius: 2, border: '1px solid #e0e0e0', overflow: 'hidden' }}>
         <TableContainer
           component={Paper}
           sx={{
@@ -110,13 +121,7 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
             '&::-webkit-scrollbar-thumb': { backgroundColor: '#aaa', borderRadius: 2 },
           }}
         >
-          <Table
-            sx={{
-              minWidth: isMobile ? 400 : 900,
-              tableLayout: 'auto',
-            }}
-            size={isMobile ? 'small' : 'medium'}
-          >
+          <Table sx={{ width: '100%', tableLayout: 'auto' }} size={isMobile ? 'small' : 'medium'}>
             <TableHead>
               <TableRow sx={{ bgcolor: '#f5f5f5' }}>
                 <TableCell sx={headerCellStyle}>Name</TableCell>
@@ -131,116 +136,123 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
             </TableHead>
 
             <TableBody>
-              {currentRows.map((worker) => (
-                <TableRow
-                  key={worker.id}
-                  sx={{ '&:hover': { bgcolor: '#f9fafb' } }}
-                >
-                  <TableCell
-                    sx={{ ...bodyCellStyle, fontWeight: 500, color: '#1f2937' }}
-                  >
-                    {worker.name}
-                  </TableCell>
-                  <TableCell sx={bodyCellStyle}>
-                    {isMobile
-                      ? worker.email.split('@')[0] + '@...'
-                      : worker.email}
-                  </TableCell>
-                  {!isMobile && <TableCell sx={bodyCellStyle}>{worker.phone}</TableCell>}
-                  <TableCell sx={bodyCellStyle}>
-                    <Chip
-                      label={worker.status}
-                      sx={{
-                        bgcolor:
-                          worker.status === 'ACTIVE' ? '#10b981' : '#ef4444',
-                        color: '#fff',
-                        height: 24,
-                        fontWeight: 500,
-                        fontSize: '0.75rem',
-                      }}
-                      size="small"
-                    />
-                  </TableCell>
-                  {!isMobile && <TableCell sx={bodyCellStyle}>{worker.skills}</TableCell>}
-                  {!isMobile && (
-                    <TableCell sx={bodyCellStyle}>
-                      {new Date(worker.hireDate).toLocaleDateString()}
+              {currentRows.length > 0 ? (
+                currentRows.map((worker) => (
+                  <TableRow key={worker.id} sx={{ '&:hover': { bgcolor: '#f9fafb' } }}>
+                    <TableCell sx={{ ...bodyCellStyle, fontWeight: 500, color: '#1f2937' }}>
+                      {worker.name || '-'}
                     </TableCell>
-                  )}
-                  <TableCell sx={bodyCellStyle}>
-                    <Checkbox
-                      checked={worker.active}
-                      onChange={() => onToggleActive(worker.id)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell sx={bodyCellStyle}>
-                    <Tooltip title="View Details">
-                      <IconButton
-                        onClick={() => handleViewDetails(worker)}
+                    <TableCell sx={truncateCellStyle}>
+                      <Tooltip title={worker.email || '-'} arrow>
+                        <span>
+                          {isMobile ? truncateText(worker.email, 12) : truncateText(worker.email, 20)}
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+                    {!isMobile && <TableCell sx={bodyCellStyle}>{worker.phone || '-'}</TableCell>}
+                    <TableCell sx={bodyCellStyle}>
+                      <Chip
+                        label={worker.status || 'INACTIVE'}
                         sx={{
-                          color: '#ffd600',
-                          p: 0.5,
-                          '&:hover': { bgcolor: '#f3f4f6', color: '#3b82f6' },
+                          bgcolor: worker.status === 'ACTIVE' ? '#10b981' : '#ef4444',
+                          color: '#fff',
+                          height: 24,
+                          fontWeight: 500,
+                          fontSize: '0.75rem',
                         }}
-                      >
-                        <Visibility fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                        size="small"
+                      />
+                    </TableCell>
                     {!isMobile && (
-                      <>
-                        <Tooltip title="Edit">
-                          <IconButton
-                            onClick={() => onEdit(worker)}
-                            sx={{
-                              color: '#10b981',
-                              p: 0.5,
-                              '&:hover': { bgcolor: '#f3f4f6', color: '#059669' },
-                            }}
-                          >
-                            <Edit fontSize="small" />
-                          </IconButton>
+                      <TableCell sx={truncateCellStyle}>
+                        <Tooltip title={worker.skills || '-'} arrow>
+                          <span>{truncateText(worker.skills, 25)}</span>
                         </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            onClick={() => onDelete(worker.id)}
-                            sx={{
-                              color: '#ef4444',
-                              p: 0.5,
-                              '&:hover': { bgcolor: '#f3f4f6', color: '#dc2626' },
-                            }}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </>
+                      </TableCell>
                     )}
+                    {!isMobile && (
+                      <TableCell sx={bodyCellStyle}>
+                        {worker.hireDate ? new Date(worker.hireDate).toLocaleDateString() : '-'}
+                      </TableCell>
+                    )}
+                    <TableCell sx={bodyCellStyle}>
+                      <Checkbox
+                        checked={worker.active}
+                        onChange={() => onToggleActive(worker.id)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell sx={bodyCellStyle}>
+                      <Tooltip title="View Details">
+                        <IconButton
+                          onClick={() => handleViewDetails(worker)}
+                          sx={{
+                            color: '#ffd600',
+                            p: 0.5,
+                            '&:hover': { bgcolor: '#f3f4f6', color: '#3b82f6' },
+                          }}
+                        >
+                          <Visibility fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      {!isMobile && (
+                        <>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              onClick={() => onEdit(worker)}
+                              sx={{
+                                color: '#10b981',
+                                p: 0.5,
+                                '&:hover': { bgcolor: '#f3f4f6', color: '#059669' },
+                              }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              onClick={() => onDelete(worker.id)}
+                              sx={{
+                                color: '#ef4444',
+                                p: 0.5,
+                                '&:hover': { bgcolor: '#f3f4f6', color: '#dc2626' },
+                              }}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={isMobile ? 5 : 8} align="center" sx={{ py: 3 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No workers found
+                    </Typography>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
       </Card>
 
       {/* Pagination */}
-      {pageCount > 1 && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            mt: 2,
-          }}
-        >
+      {workers.length > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2 }}>
           <Pagination
             count={pageCount}
             page={page}
-            onChange={(_, value) => setPage(value)}
+            onChange={handlePageChange}
             color="primary"
             shape="rounded"
             size={isMobile ? 'small' : 'medium'}
             siblingCount={isMobile ? 0 : 1}
+            showFirstButton
+            showLastButton
           />
         </Box>
       )}
@@ -255,26 +267,22 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
         <Box
           sx={{
             position: 'absolute',
-            top: '50%',
+            top: '60%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: { xs: '90%', sm: '500px' },
+            width: { xs: '90%', sm: '500px', md: '600px' },
+            maxWidth: '90vw',
             bgcolor: 'background.paper',
             borderRadius: 2,
             boxShadow: 24,
             p: 4,
             maxHeight: '90vh',
-            overflowY: 'auto',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 3,
-            }}
-          >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" component="h2" fontWeight="bold">
               Worker Details
             </Typography>
@@ -285,113 +293,79 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
 
           <Divider sx={{ mb: 3 }} />
 
-          {selectedWorker && (
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Name
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {selectedWorker.name}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Email
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {selectedWorker.email}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Phone
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {selectedWorker.phone}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Status
-                </Typography>
-                <Chip
-                  label={selectedWorker.status}
-                  sx={{
-                    bgcolor:
-                      selectedWorker.status === 'ACTIVE' ? '#10b981' : '#ef4444',
-                    color: '#fff',
-                    fontWeight: 500,
-                  }}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Skills
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {selectedWorker.skills}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Hire Date
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {new Date(selectedWorker.hireDate).toLocaleDateString()}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Active
-                </Typography>
-                <Checkbox
-                  checked={selectedWorker.active}
-                  onChange={() => onToggleActive(selectedWorker.id)}
-                  size="small"
-                />
-              </Grid>
-              {selectedWorker.address && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Address
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {selectedWorker.address}
-                  </Typography>
-                </Grid>
-              )}
-              {selectedWorker.shifts && (
+          <Box sx={{ overflowY: 'auto', flexGrow: 1, pr: 1 }}>
+            {selectedWorker && (
+              <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Shifts
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {selectedWorker.shifts}
+                  <Typography variant="subtitle2" color="text.secondary">Name</Typography>
+                  <Typography variant="body1">{selectedWorker.name || '-'}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">Email</Typography>
+                  <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>
+                    {selectedWorker.email || '-'}
                   </Typography>
                 </Grid>
-              )}
-            </Grid>
-          )}
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">Phone</Typography>
+                  <Typography variant="body1">{selectedWorker.phone || '-'}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">Status</Typography>
+                  <Chip
+                    label={selectedWorker.status || 'INACTIVE'}
+                    sx={{
+                      bgcolor: selectedWorker.status === 'ACTIVE' ? '#10b981' : '#ef4444',
+                      color: '#fff',
+                      fontWeight: 500,
+                    }}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary">Skills</Typography>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {selectedWorker.skills || '-'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">Hire Date</Typography>
+                  <Typography variant="body1">
+                    {selectedWorker.hireDate ? new Date(selectedWorker.hireDate).toLocaleDateString() : '-'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">Active</Typography>
+                  <Checkbox
+                    checked={selectedWorker.active}
+                    onChange={() => onToggleActive(selectedWorker.id)}
+                    size="small"
+                  />
+                </Grid>
+                {selectedWorker.address && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary">Address</Typography>
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {selectedWorker.address}
+                    </Typography>
+                  </Grid>
+                )}
+                {selectedWorker.shifts && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary">Shifts</Typography>
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {selectedWorker.shifts}
+                    </Typography>
+                  </Grid>
+                )}
+              </Grid>
+            )}
+          </Box>
 
           <Divider sx={{ my: 3 }} />
 
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 1.5,
-              mt: 2,
-            }}
-          >
-            <Button
-              variant="outlined"
-              onClick={handleCloseDetailModal}
-              sx={{
-                borderRadius: 1,
-              }}
-            >
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 2 }}>
+            <Button variant="outlined" onClick={handleCloseDetailModal} sx={{ borderRadius: 1 }}>
               Close
             </Button>
             {selectedWorker && (
@@ -402,11 +376,7 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
                     onEdit(selectedWorker)
                     handleCloseDetailModal()
                   }}
-                  sx={{
-                    backgroundColor: '#10b981',
-                    '&:hover': { backgroundColor: '#059669' },
-                    borderRadius: 1,
-                  }}
+                  sx={{ backgroundColor: '#10b981', '&:hover': { backgroundColor: '#059669' }, borderRadius: 1 }}
                 >
                   Edit
                 </Button>
@@ -416,11 +386,7 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
                     onDelete(selectedWorker.id)
                     handleCloseDetailModal()
                   }}
-                  sx={{
-                    backgroundColor: '#ef4444',
-                    '&:hover': { backgroundColor: '#dc2626' },
-                    borderRadius: 1,
-                  }}
+                  sx={{ backgroundColor: '#ef4444', '&:hover': { backgroundColor: '#dc2626' }, borderRadius: 1 }}
                 >
                   Delete
                 </Button>
@@ -429,7 +395,7 @@ const WorkersTable: React.FC<WorkersTableProps> = ({
           </Box>
         </Box>
       </Modal>
-    </>
+    </Box>
   )
 }
 

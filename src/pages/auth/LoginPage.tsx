@@ -38,22 +38,27 @@ const LoginPage = () => {
     }
   }, [isAuthenticated, navigate])
 
-  const handleLogin = async () => {
-    // Validation
-    if (!username || !/\S+@\S+\.\S+/.test(username)) {
-      setValidationError("Please enter a valid email address")
-      return
-    }
-    if (password.length < 5) {
-      setValidationError("Password must be at least 5 characters")
-      return
-    }
-
-    setValidationError(null)
-
-    // Dispatch login → loader start hoga
-    await dispatch(loginUser({ username, password }))
+ const handleLogin = async () => {
+  // Validation
+  if (!username || !/\S+@\S+\.\S+/.test(username)) {
+    setValidationError("Please enter a valid email address")
+    return
   }
+  if (password.length < 5) {
+    setValidationError("Password must be at least 5 characters")
+    return
+  }
+
+  setValidationError(null)
+
+  try {
+    // ✅ Dispatch login with email
+    await dispatch(loginUser({ email: username, password })) 
+  } catch (err) {
+    console.error("Login failed:", err)
+  }
+}
+
 
   return (
     <div className="login-page">

@@ -1,10 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
 import { messageSlice, createCrudSlice } from './slices/crudSlice'
+import { workersReducer } from './slices/workerSlice'
 import { testEntityService } from '../services/crudService'
 import type { TestEntity } from '../types/crud'
 
-// Create test entity slice
+// Test entity slice
 const testEntitySlice = createCrudSlice<TestEntity>('testEntity', testEntityService)
 
 export const store = configureStore({
@@ -12,6 +13,7 @@ export const store = configureStore({
     auth: authReducer,
     messages: messageSlice.reducer,
     testEntity: testEntitySlice.reducer,
+    workers: workersReducer, // ✅ correct
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -24,5 +26,4 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
 
-// Export test entity actions for use in components
 export const testEntityActions = testEntitySlice.actions

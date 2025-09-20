@@ -1,32 +1,25 @@
-
-
-
 import axios from "axios"
 import { AuthResponse } from "@/types/auth"
 
-const API_URL = "http://3.25.19.167:81/api/auth"
+const API_URL = "http://54.206.231.112:8000/api/auth"
 
 class AuthService {
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-  const response = await axios.post<AuthResponse>(`${API_URL}/login/`, credentials)
+  // ✅ Login ab email accept karega
+  async login(credentials: { email: string; password: string }): Promise<AuthResponse> {
+    console.log("Login Credentials:", credentials)
+    const response = await axios.post<AuthResponse>(`${API_URL}/login/`, credentials)
 
-  // 🔹 Console token
-  console.log("Access Token:", response.data.access)
+    // Purana token remove karo
+    localStorage.removeItem('token')
+    localStorage.removeItem('refresh')
 
-  // 🔹 Decode JWT payload
-  if (response.data.access) {
-    const payload = JSON.parse(atob(response.data.access.split(".")[1]))
-    console.log("Decoded Token Payload:", payload)
+    // Naya token save karo
+    localStorage.setItem('token', response.data.access)
+    localStorage.setItem('refresh', response.data.refresh)
+    console.log("Access Token saved to localStorage:", response.data.access)
 
-    // Agar payload me email hai
-    if (payload.email) {
-      console.log("User Email from Token:", payload.email)
-    }
+    return response.data
   }
-
-  return response.data
-}
-
 
   async register(credentials: { username: string; password: string; email?: string }): Promise<AuthResponse> {
     const response = await axios.post<AuthResponse>(`${API_URL}/register/`, credentials)
@@ -43,16 +36,12 @@ class AuthService {
 
   async logout() {
     const token = localStorage.getItem("token")
-    await axios.post(
-      `${API_URL}/logout/`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    )
+    await axios.post(`${API_URL}/logout/`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     localStorage.removeItem("token")
+    localStorage.removeItem("refresh")
   }
 }
 
 export const authService = new AuthService()
-
